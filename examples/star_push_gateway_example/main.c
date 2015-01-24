@@ -47,7 +47,7 @@
 static bool start_channel_scan = false;
 uint8_t buffer[128];
 
-static uint8_t receive_channel[2] = {0x04, 0x00};
+static uint8_t receive_channel[2] = {0x04, 0x04};
 
 void start_rx()
 {
