@@ -45,7 +45,7 @@
 static bool start_channel_scan = false;
 static volatile uint8_t add_sensor_event = 0;
 
-static uint8_t receive_channel[2] = {0x04,0x00};
+static uint8_t receive_channel[2] = {0x04,0x04};
 uint8_t tx_buffer[128];
 uint8_t rx_buffer[128];
 

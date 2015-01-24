@@ -54,7 +54,7 @@
 // Macro which can be removed in production environment
 #define USE_LEDS
 
-static uint8_t send_channel[2] = {0x04, 0x00};
+static uint8_t send_channel[2] = {0x04, 0x04};
 static uint8_t tx = 0;
 static uint8_t counter = 0;
 static volatile bool add_tx_event = true;
