@@ -77,8 +77,13 @@ void start_tx()
 
 		log_print_string("TX...");
 
-		data[0] = counter >> 8;
-		data[1] = counter & 0xFF;
+		//data[0] = counter >> 8;
+		//data[1] = counter & 0xFF;
+
+		data[0] = 41; //0x29
+		data[1] = 8; //0x08
+		data[2] = 25; //0x19
+		data[3] = 147; //0x93
 
 		alp_create_structure_for_tx(ALP_REC_FLG_TYPE_UNSOLICITED, 0, 1, &alp_template);
 		trans_tx_query(NULL, 0xFF, send_channel, TX_EIRP, true);

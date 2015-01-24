@@ -54,7 +54,6 @@ uint8_t rx_buffer[128];
 static volatile uint16_t adc12_result;
 static volatile uint8_t adc12_data_ready;
 
-
 void start_rx()
 {
 	start_channel_scan = false;
@@ -142,6 +141,7 @@ void tx_callback(Trans_Tx_Result result)
 	start_channel_scan = true;
 }
 
+
 int main(void) {
 	timer_event event = { &get_temperature, TEMPERATURE_INTERVAL_MS} ;
 	int16_t temperature_internal;
@@ -187,7 +187,10 @@ int main(void) {
 			uint8_t data[2];
 			data[0] = (uint8_t) (temperature_internal>> 8);
 			data[1] = (uint8_t) (temperature_internal);
-
+			//data[0] = 41; //0x29
+			//data[1] = 8; //0x08
+			//data[2] = 25; //0x19
+			//data[3] = 147; //0x93
 			fs_write_data(&fh, 2, data, 2,true);
 
 			fs_close(&fh);
