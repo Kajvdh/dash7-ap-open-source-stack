@@ -49,13 +49,15 @@ static uint8_t receive_channel[2] = {0x04,0x04};
 uint8_t tx_buffer[128];
 uint8_t rx_buffer[128];
 
-
+static uint8_t counter = 0;
 #define CLOCKS_PER_1us	20
 static volatile uint16_t adc12_result;
 static volatile uint8_t adc12_data_ready;
 
 void start_rx()
 {
+	counter++;
+
 	start_channel_scan = false;
 	trans_rx_query_start(0xFF, receive_channel);
 }
@@ -187,6 +189,8 @@ int main(void) {
 			uint8_t data[2];
 			data[0] = (uint8_t) (temperature_internal>> 8);
 			data[1] = (uint8_t) (temperature_internal);
+			//data[0] = counter;
+			//data[1] = counter;
 			//data[0] = 41; //0x29
 			//data[1] = 8; //0x08
 			//data[2] = 25; //0x19

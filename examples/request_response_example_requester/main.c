@@ -88,8 +88,8 @@ void start_tx()
 		alp_template.data = (uint8_t*) &data_template;
 
 		data_template.file_id = 32;
-		data_template.start_byte_offset = 0;
-		data_template.bytes_accessing = 6;
+		data_template.start_byte_offset = 2;
+		data_template.bytes_accessing = 4;
 		data_template.data = NULL;
 
 		alp_create_structure_for_tx(ALP_REC_FLG_TYPE_COMMAND_RESPONSE, counter, 1, &alp_template);
