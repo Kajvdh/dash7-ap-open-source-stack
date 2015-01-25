@@ -11,6 +11,7 @@ SET(HAL_API
     spi.h
     radio_hw.h
     flash.h
+    ping.h
 )
 
 IF(D7AOSS_HAL_DRIVER STREQUAL "cc430")
@@ -23,6 +24,7 @@ IF(D7AOSS_HAL_DRIVER STREQUAL "cc430")
                     cc430/cc430_uart.c
                     cc430/cc430_timer.c
                     cc430/cc430_flash.c
+                    cc430/cc430_ping.c
                     crc_software.c
     )
 

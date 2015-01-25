@@ -30,12 +30,15 @@
 #include <hal/system.h>
 #include <hal/button.h>
 #include <hal/leds.h>
+#include <hal/ping.h>
 #include <hal/rtc.h>
 #include <hal/uart.h>
 #include <framework/log.h>
 #include <framework/timer.h>
 #include <msp430.h>
 
+// Conversion from msec to ACLK timer ticks
+#define CONV_MS_TO_TICKS(msec)         			(((msec) * 32768) / 1000)
 
 #define TEMPERATURE_INTERVAL_MS 2000
 #define TX_EIRP 10
@@ -64,6 +67,19 @@ void start_rx()
 
 void get_temperature()
 {
+	ping_init();
+
+	ping_toggle();
+
+	CONV_MS_TO_TICKS(1000);
+	ping_toggle();
+	CONV_MS_TO_TICKS(1000);
+	ping_toggle();
+	CONV_MS_TO_TICKS(1000);
+	ping_toggle();
+
+
+
 	add_sensor_event = true;
 }
 
