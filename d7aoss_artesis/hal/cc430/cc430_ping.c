@@ -61,7 +61,7 @@ void ping_toggle() {
 }
 
 unsigned char ping_is_high() {
-	return (GPIO_INPUT_PIN_LOW == GPIO_getInputPinValue(PING_BASEADDRESS, PING_PORT, PING_PIN));
+	return (GPIO_INPUT_PIN_HIGH == GPIO_getInputPinValue(PING_BASEADDRESS, PING_PORT, PING_PIN));
 }
 
 
