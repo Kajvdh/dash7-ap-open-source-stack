@@ -346,10 +346,17 @@ __interrupt void PORT2_ISR (void)
 		//pingInterruptLowToHigh();
 
 		//Start timer
-		//hal_benchmarking_timer_init();
-		//hal_benchmarking_timer_start();
-		ping_enable_interrupt_high_to_low();
-		ping_interrupt_type = TRANSIT_HIGH_TO_LOW;
+		hal_benchmarking_timer_init();
+		hal_benchmarking_timer_start();
+
+		while (ping_is_active()) {
+			//Sleep untill GPIO LOW
+		}
+		hal_benchmarking_timer_stop();
+		led_off(1);
+		pingInterruptHighToLow();
+		//ping_enable_interrupt_high_to_low();
+		//ping_interrupt_type = TRANSIT_HIGH_TO_LOW;
 	}
 	if ((ping_interrupt_type == TRANSIT_HIGH_TO_LOW) && (ping_is_inactive())) {
 		led_off(1);
