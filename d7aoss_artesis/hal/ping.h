@@ -28,6 +28,10 @@ void ping_toggle();
 void ping_initWrite();
 void ping_initRead();
 
+void ping_enable_interrupts();
+void ping_disable_interrupts();
+void ping_clear_interrupt_flag();
+unsigned char ping_is_active();
 
 
 #endif // __LEDS_H__

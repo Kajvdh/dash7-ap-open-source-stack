@@ -59,6 +59,8 @@ static uint8_t counter = 0;
 static volatile uint16_t adc12_result;
 static volatile uint8_t adc12_data_ready;
 
+static volatile uint8_t interrupt_ping = 0;
+
 void start_rx()
 {
 	counter++;
@@ -157,6 +159,10 @@ int16_t convertMvToCelcius(int16_t i) {
 	//y=0.185x-128
 }
 
+void receivedInterrupt() {
+	led_on(1);
+}
+
 
 int main(void) {
 	timer_event event = { &get_temperature, TEMPERATURE_INTERVAL_MS} ;
@@ -175,20 +181,12 @@ int main(void) {
 
 	start_channel_scan = true;
 
+	//INTERRUPT TEST PROGRAM
+	led_off(1);
+	ping_initRead(); //Define PING as INPUT
+	ping_enable_interrupts();
 
 
-	led_blink(1);
-	//ping_init();
-		led_on(1);
-
-		__delay_cycles(CONV_MS_TO_TICKS(1000));
-		led_toggle(1);
-		__delay_cycles(CONV_MS_TO_TICKS(1000));
-		led_toggle(1);
-		__delay_cycles(CONV_MS_TO_TICKS(1000));
-		led_toggle(1);
-		__delay_cycles(CONV_MS_TO_TICKS(1000));
-		led_toggle(1);
 
 	timer_add_event(&event);
 
@@ -240,6 +238,18 @@ int main(void) {
 }
 
 
+#pragma vector=PORT2_VECTOR
+__interrupt void PORT2_ISR (void)
+{
+	if(ping_is_active()) {
+		interrupt_ping = 1;
+		receivedInterrupt();
+		ping_disable_interrupts();
+	}
+	else {
+		interrupt_ping = 0;
+	}
+}
 
 #pragma vector=ADC12_VECTOR
 __interrupt void ADC12ISR (void)

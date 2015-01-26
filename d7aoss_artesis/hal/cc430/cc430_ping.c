@@ -58,3 +58,29 @@ void ping_toggle() {
 unsigned char ping_is_high() {
 	return (GPIO_INPUT_PIN_LOW == GPIO_getInputPinValue(PING_BASEADDRESS, PING_PORT, PING_PIN));
 }
+
+
+void ping_enable_interrupts()
+{
+    GPIO_enableInterrupt(PING_BASEADDRESS, PING_PORT, PING_PIN);
+
+    GPIO_interruptEdgeSelect(PING_BASEADDRESS, PING_PORT, PING_PIN,
+        GPIO_LOW_TO_HIGH_TRANSITION);
+
+    ping_clear_interrupt_flag();
+}
+
+void ping_disable_interrupts()
+{
+    GPIO_disableInterrupt(PING_BASEADDRESS, PING_PORT, PING_PIN);
+}
+
+void ping_clear_interrupt_flag()
+{
+    GPIO_clearInterruptFlag(PING_BASEADDRESS, PING_PORT, PING_PIN);
+}
+
+unsigned char ping_is_active()
+{
+	return (GPIO_INPUT_PIN_HIGH == GPIO_getInputPinValue(PING_BASEADDRESS, PING_PORT, PING_PIN));
+}
