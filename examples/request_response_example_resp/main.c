@@ -61,6 +61,23 @@ static volatile uint8_t adc12_data_ready;
 
 static volatile uint8_t interrupt_ping = 0;
 
+
+uint8_t ping_interrupt_type;
+
+#define TRANSIT_LOW_TO_HIGH 0x01
+#define TRANSIT_HIGH_TO_LOW 0x02
+#define NO_INTERRUPT 0x00
+uint32_t time = 0;
+
+#define PING_EVENT_NONE 0x00
+#define PING_EVENT_START 0x01
+#define PING_EVENT_LOW 0x02
+#define PING_EVENT_HIGH 0x03
+#define PING_EVENT_INTERRUPT_LOW_TO_HIGH 0x04
+#define PING_EVENT_INTERRUPT_HIGH_TO_LOW 0x05
+
+static volatile uint8_t ping_event = 0;
+
 void start_rx()
 {
 	counter++;
@@ -159,13 +176,36 @@ int16_t convertMvToCelcius(int16_t i) {
 	//y=0.185x-128
 }
 
-void receivedInterrupt() {
-	led_on(1);
+
+
+
+
+void startPingEvent() {
+	ping_event = PING_EVENT_START;
+}
+void pingInitLowEvent() {
+	ping_event = PING_EVENT_LOW;
+}
+void pingInitHighEvent() {
+	ping_event = PING_EVENT_HIGH;
+}
+void pingInterruptLowToHigh() {
+	ping_event = PING_EVENT_INTERRUPT_LOW_TO_HIGH;
+}
+void pingInterruptHighToLow() {
+	ping_event = PING_EVENT_INTERRUPT_HIGH_TO_LOW;
 }
 
 
+
+
+
 int main(void) {
-	timer_event event = { &get_temperature, TEMPERATURE_INTERVAL_MS} ;
+	//timer_event event = { &getTemperature, TEMPERATURE_INTERVAL_MS} ;
+	timer_event event = { &startPingEvent, 5000} ;
+	timer_event event_pingLow = { &pingInitLowEvent, 0.002};
+	timer_event event_pingHigh= { &pingInitHighEvent, 0.005};
+
 	int16_t temperature_internal;
 	int16_t temperature;
 	file_handler fh;
@@ -174,17 +214,11 @@ int main(void) {
 	// Initialize the OSS-7 Stack
 	d7aoss_init(tx_buffer, 128, rx_buffer, 128);
 
-
 	trans_set_tx_callback(&tx_callback);
 	// The initial Tca for the CSMA-CA in
 	dll_set_initial_t_ca(200);
 
 	start_channel_scan = true;
-
-	//INTERRUPT TEST PROGRAM
-	led_off(1);
-	ping_initRead(); //Define PING as INPUT
-	ping_enable_interrupts();
 
 
 
@@ -202,6 +236,69 @@ int main(void) {
 		{
 			start_rx();
 		}
+
+		if (ping_event == PING_EVENT_START) {
+			ping_event = PING_EVENT_NONE;
+			ping_disable_interrupts();
+			ping_interrupt_type = NO_INTERRUPT;
+			ping_initAsOutput(); //Initialise PING sensor as Ouput
+			ping_off();
+			timer_add_event(&event_pingLow);
+		}
+		if (ping_event == PING_EVENT_LOW) {
+			ping_event = PING_EVENT_NONE;
+			ping_on();
+			timer_add_event(&event_pingHigh);
+		}
+		if (ping_event == PING_EVENT_HIGH) {
+			ping_event = PING_EVENT_NONE;
+			ping_off();
+			ping_initAsInput();
+			ping_enable_interrupt_low_to_high();
+			ping_interrupt_type = TRANSIT_LOW_TO_HIGH;
+		}
+		//if (ping_event == PING_EVENT_INTERRUPT_LOW_TO_HIGH) {
+		//	led_off(1);
+		//	ping_event = PING_EVENT_NONE;
+		//	//Start timer
+		//	hal_benchmarking_timer_init();
+		//	hal_benchmarking_timer_start();
+		//	ping_enable_interrupt_high_to_low();
+		//	ping_interrupt_type = TRANSIT_HIGH_TO_LOW;
+		//}
+		if (ping_event == PING_EVENT_INTERRUPT_HIGH_TO_LOW) {
+			ping_event = PING_EVENT_NONE;
+			file_handler fh;
+			//Stop timer
+			//Time in ms -> calculate distance
+			//hal_benchmarking_timer_stop();
+			//time = hal_benchmarking_timer_getvalue();
+
+
+			fs_open(&fh, 32, file_system_user_user, file_system_access_type_write);
+
+			uint8_t data[2];
+			//data[0] = (uint8_t) (temperature_internal>> 8);
+			//data[1] = (uint8_t) (temperature_internal);
+
+			temperature = convertMvToCelcius(temperature_internal);
+
+
+			data[0] = (uint8_t) (temperature >> 8);
+			data[1] = (uint8_t) (temperature);
+			//data[0] = counter;
+			//data[1] = counter;
+			//data[0] = 41; //0x29
+			//data[1] = 8; //0x08
+			//data[2] = 25; //0x19
+			//data[3] = 147; //0x93
+			fs_write_data(&fh, 2, data, 2,true);
+
+			fs_close(&fh);
+
+			timer_add_event(&event);
+		}
+
 
 		if (add_sensor_event)
 		{
@@ -241,13 +338,25 @@ int main(void) {
 #pragma vector=PORT2_VECTOR
 __interrupt void PORT2_ISR (void)
 {
-	if(ping_is_active()) {
-		interrupt_ping = 1;
-		receivedInterrupt();
+	led_off(1);
+	if ((ping_interrupt_type == TRANSIT_LOW_TO_HIGH) && (ping_is_active())) {
+		led_on(1);
 		ping_disable_interrupts();
+		ping_interrupt_type = NO_INTERRUPT;
+		//pingInterruptLowToHigh();
+
+		//Start timer
+		//hal_benchmarking_timer_init();
+		//hal_benchmarking_timer_start();
+		ping_enable_interrupt_high_to_low();
+		ping_interrupt_type = TRANSIT_HIGH_TO_LOW;
 	}
-	else {
-		interrupt_ping = 0;
+	if ((ping_interrupt_type == TRANSIT_HIGH_TO_LOW) && (ping_is_inactive())) {
+		led_off(1);
+		ping_disable_interrupts();
+		ping_interrupt_type = NO_INTERRUPT;
+		//hal_benchmarking_timer_stop();
+		pingInterruptHighToLow();
 	}
 }
 

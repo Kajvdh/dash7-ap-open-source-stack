@@ -37,12 +37,17 @@ void ping_init() {
 	ping_off();
 }
 
-
-void ping_initWrite() {
+void ping_initAsOutput() {
 	GPIO_setAsOutputPin(PING_BASEADDRESS, PING_PORT, PING_PIN);
 }
-void ping_initRead() {
+void ping_initWrite() {
+	ping_initAsOutput();
+}
+void ping_initAsInput() {
 	GPIO_setAsInputPin(PING_BASEADDRESS, PING_PORT, PING_PIN);
+}
+void ping_initRead() {
+	ping_initAsInput();
 }
 
 void ping_off() {
@@ -60,14 +65,25 @@ unsigned char ping_is_high() {
 }
 
 
+void ping_enable_interrupt_low_to_high() {
+	GPIO_enableInterrupt(PING_BASEADDRESS, PING_PORT, PING_PIN);
+
+	GPIO_interruptEdgeSelect(PING_BASEADDRESS, PING_PORT, PING_PIN,
+		GPIO_LOW_TO_HIGH_TRANSITION);
+
+	ping_clear_interrupt_flag();
+}
+void ping_enable_interrupt_high_to_low() {
+	GPIO_enableInterrupt(PING_BASEADDRESS, PING_PORT, PING_PIN);
+
+	GPIO_interruptEdgeSelect(PING_BASEADDRESS, PING_PORT, PING_PIN,
+		GPIO_HIGH_TO_LOW_TRANSITION);
+
+	ping_clear_interrupt_flag();
+}
 void ping_enable_interrupts()
 {
-    GPIO_enableInterrupt(PING_BASEADDRESS, PING_PORT, PING_PIN);
-
-    GPIO_interruptEdgeSelect(PING_BASEADDRESS, PING_PORT, PING_PIN,
-        GPIO_LOW_TO_HIGH_TRANSITION);
-
-    ping_clear_interrupt_flag();
+	ping_enable_interrupt_low_to_high();
 }
 
 void ping_disable_interrupts()
@@ -84,3 +100,8 @@ unsigned char ping_is_active()
 {
 	return (GPIO_INPUT_PIN_HIGH == GPIO_getInputPinValue(PING_BASEADDRESS, PING_PORT, PING_PIN));
 }
+unsigned char ping_is_inactive()
+{
+	return (GPIO_INPUT_PIN_LOW == GPIO_getInputPinValue(PING_BASEADDRESS, PING_PORT, PING_PIN));
+}
+
