@@ -39,10 +39,12 @@
 
 // Conversion from msec to ACLK timer ticks
 #define CONV_MS_TO_TICKS(msec)         			(((msec) * 32768) / 1000)
+#define CONV_MV_TO_CELCIUS(mv)					((0.185*mv) - 128)
 
-#define TEMPERATURE_INTERVAL_MS 2000
+
+#define TEMPERATURE_INTERVAL_MS 10000
 #define TX_EIRP 10
-#define USE_LEDS
+//#define USE_LEDS
 
 
 static bool start_channel_scan = false;
@@ -67,19 +69,6 @@ void start_rx()
 
 void get_temperature()
 {
-	ping_init();
-
-	ping_toggle();
-
-	CONV_MS_TO_TICKS(1000);
-	ping_toggle();
-	CONV_MS_TO_TICKS(1000);
-	ping_toggle();
-	CONV_MS_TO_TICKS(1000);
-	ping_toggle();
-
-
-
 	add_sensor_event = true;
 }
 
@@ -159,10 +148,20 @@ void tx_callback(Trans_Tx_Result result)
 	start_channel_scan = true;
 }
 
+int16_t convertMvToCelcius(int16_t i) {
+	int16_t y;
+	//y=0.185*i-128;
+	y= (int16_t)((i*(int16_t)(1))-784);
+
+	return (int16_t)(y);
+	//y=0.185x-128
+}
+
 
 int main(void) {
 	timer_event event = { &get_temperature, TEMPERATURE_INTERVAL_MS} ;
 	int16_t temperature_internal;
+	int16_t temperature;
 	file_handler fh;
 
 
@@ -179,6 +178,17 @@ int main(void) {
 
 
 	led_blink(1);
+	//ping_init();
+		led_on(1);
+
+		__delay_cycles(CONV_MS_TO_TICKS(1000));
+		led_toggle(1);
+		__delay_cycles(CONV_MS_TO_TICKS(1000));
+		led_toggle(1);
+		__delay_cycles(CONV_MS_TO_TICKS(1000));
+		led_toggle(1);
+		__delay_cycles(CONV_MS_TO_TICKS(1000));
+		led_toggle(1);
 
 	timer_add_event(&event);
 
@@ -203,8 +213,14 @@ int main(void) {
 			fs_open(&fh, 32, file_system_user_user, file_system_access_type_write);
 
 			uint8_t data[2];
-			data[0] = (uint8_t) (temperature_internal>> 8);
-			data[1] = (uint8_t) (temperature_internal);
+			//data[0] = (uint8_t) (temperature_internal>> 8);
+			//data[1] = (uint8_t) (temperature_internal);
+
+			temperature = convertMvToCelcius(temperature_internal);
+
+
+			data[0] = (uint8_t) (temperature >> 8);
+			data[1] = (uint8_t) (temperature);
 			//data[0] = counter;
 			//data[1] = counter;
 			//data[0] = 41; //0x29
